@@ -18,20 +18,32 @@ def create_summary_card(title, value, color):
         color=color, inverse=True, className="text-center shadow-sm mb-3"
     )
 
+
 # --- Page Layout ---
 layout = dbc.Container([
     html.H2("Page 7: Monthly Trend by Device", className="text-center my-4", style={'color': '#2c3e50'}),
 
     # Filters Section
     dbc.Row([
+        # 1. Date Range (Width changed to 4)
         dbc.Col([html.Label("Select Date Range:", style={'fontWeight': 'bold'}),
                  dcc.DatePickerRange(id='p7-date-range-picker',
                                      display_format='YYYY-MM-DD')],
-                width=12, md=6),
+                width=12, md=4),
+
+        # 2. Country Filter (Width changed to 4)
         dbc.Col([html.Label("Select Country:", style={'fontWeight': 'bold'}),
                  dcc.Dropdown(id='p7-country-filter', value=[], multi=True,
                               placeholder="Select countries...")],
-                width=12, md=6)
+                width=12, md=4),
+
+        # 3. NEW: Applicant Status Filter (Width 4)
+        dbc.Col([html.Label("Filter by Status:", style={'fontWeight': 'bold'}),
+                 dcc.Dropdown(id='p7-status-filter',
+                              value=[],
+                              multi=True,
+                              placeholder="Select status...")],
+                width=12, md=4),
     ], className="mb-4"),
 
     # Summary Cards
@@ -49,7 +61,7 @@ layout = dbc.Container([
 
 # --- MODIFIED Callback Registration ---
 def register_callbacks(app):
-    """Registers all callbacks for Page 8 (Monthly Device Trend)."""
+    """Registers all callbacks for Page 7 (Monthly Device Trend)."""
 
     # 1. Callback to Initialize Filters (Triggered by Data Load)
     @app.callback(
@@ -57,13 +69,14 @@ def register_callbacks(app):
          Output('p7-date-range-picker', 'max_date_allowed'),
          Output('p7-date-range-picker', 'start_date'),
          Output('p7-date-range-picker', 'end_date'),
-         Output('p7-country-filter', 'options')],
-        [Input('global-data-store', 'data')]  # Listen to Store
+         Output('p7-country-filter', 'options'),
+         Output('p7-status-filter', 'options')],  # Added Output for Status
+        [Input('global-data-store', 'data')]
     )
     def populate_initial_filters(json_data):
-        """Populates date pickers and country filter options based on the DataFrame."""
+        """Populates date pickers, country, and status filter options."""
         if json_data is None:
-            return no_update, no_update, no_update, no_update, []
+            return no_update, no_update, no_update, no_update, [], []
 
         df = pd.DataFrame(json_data)
 
@@ -77,7 +90,13 @@ def register_callbacks(app):
         country_options = [{'label': country, 'value': country} for country in
                            sorted(df['applicant_location'].unique())]
 
-        return min_date, max_date, min_date, max_date, country_options
+        # Status Options (NEW)
+        status_options = []
+        if 'application_status' in df.columns:
+            unique_statuses = sorted(df['application_status'].dropna().astype(str).unique())
+            status_options = [{'label': s.title(), 'value': s} for s in unique_statuses]
+
+        return min_date, max_date, min_date, max_date, country_options, status_options
 
     # 2. Callback to Update Content (Triggered by Filters OR Data Load)
     @app.callback(
@@ -89,10 +108,11 @@ def register_callbacks(app):
         [Input('p7-date-range-picker', 'start_date'),
          Input('p7-date-range-picker', 'end_date'),
          Input('p7-country-filter', 'value'),
+         Input('p7-status-filter', 'value'),  # Added Input for Status
          Input('data-source-selector', 'value'),
-         Input('global-data-store', 'data')]  # Add Store as Input
+         Input('global-data-store', 'data')]
     )
-    def update_page_7(start_date, end_date, selected_countries,data_source, json_data):
+    def update_page_7(start_date, end_date, selected_countries, selected_statuses, data_source, json_data):
 
         if json_data is None:
             return no_update, no_update, no_update, no_update, no_update
@@ -113,14 +133,19 @@ def register_callbacks(app):
         if not start_date: start_date = df['application_date'].min().date()
         if not end_date: end_date = df['application_date'].max().date()
 
-        # Apply Filters
+        # Apply Date Filter
         filtered_df = filtered_df[
             (filtered_df['application_date'] >= str(start_date)) &
             (filtered_df['application_date'] <= str(end_date))
             ]
 
+        # Apply Country Filter
         if selected_countries:
             filtered_df = filtered_df[filtered_df['applicant_location'].isin(selected_countries)]
+
+        # Apply Status Filter (NEW)
+        if selected_statuses:
+            filtered_df = filtered_df[filtered_df['application_status'].isin(selected_statuses)]
 
         # Handle Empty Data
         if filtered_df.empty:
@@ -208,7 +233,8 @@ def register_callbacks(app):
         monthly_pivot.sort_values('year_month', inplace=True)
 
         # Graph Generation
-        fig = generate_device_monthly_graph(monthly_pivot, 'year_month', f'Monthly {suffix}: Mobile vs. Desktop {suffix}',
+        fig = generate_device_monthly_graph(monthly_pivot, 'year_month',
+                                            f'Monthly {suffix}: Mobile vs. Desktop {suffix}',
                                             'Month')
 
         return fig, total_card, mobile_card, desktop_card, mobile_perc_card

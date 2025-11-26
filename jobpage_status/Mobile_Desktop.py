@@ -25,42 +25,56 @@ def create_summary_card(title, value, color):
         color=color, inverse=True, className="text-center shadow-sm mb-3"
     )
 
+
 # Page layout
 layout = dbc.Container([
     html.H2("Page 5: Mobile vs Desktop Users Breakdown", className="text-center my-4", style={'color': '#2c3e50'}),
 
     # Filters Section
     dbc.Row([
+        # 1. Date Range (Width changed to 3)
         dbc.Col([html.Label("Select Date Range:", style={'fontWeight': 'bold'}),
                  dcc.DatePickerRange(id='p5-date-range-picker',
                                      display_format='YYYY-MM-DD')],
-                width=12, md=4),
+                width=12, md=3),
+
+        # 2. Country Filter (Width changed to 3)
         dbc.Col([html.Label("Select Country:", style={'fontWeight': 'bold'}),
                  dcc.Dropdown(id='p5-country-filter', value=[], multi=True,
                               placeholder="Select countries...")],
-                width=12, md=4),
+                width=12, md=3),
+
+        # 3. Device Filter (Width changed to 3)
         dbc.Col([html.Label("Filter by Device Type:", style={'fontWeight': 'bold'}),
                  dcc.Dropdown(id='p5-device-filter',
                               options=DEVICE_TYPE_OPTIONS,
                               value=['All'],  # Default to 'All' as a list
                               multi=True,  # Enable multi-select
                               placeholder="Select device type...")],
-                width=12, md=4),
+                width=12, md=3),
+
+        # 4. NEW: Applicant Status Filter (Width 3)
+        dbc.Col([html.Label("Filter by Status:", style={'fontWeight': 'bold'}),
+                 dcc.Dropdown(id='p5-status-filter',
+                              value=[],
+                              multi=True,
+                              placeholder="Select status...")],
+                width=12, md=3),
     ], className="mb-4"),
 
     # Summary Cards
     dbc.Row([
         dbc.Col(id='p5-total-applications-card', width=12, md=3),
-        dbc.Col(id='p5-mobile-total-card', width=12, md=3),  # New Card: Mobile Total
-        dbc.Col(id='p5-desktop-total-card', width=12, md=3),  # New Card: Desktop Total
-        dbc.Col(id='p5-mobile-percentage-card', width=12, md=3),  # New Card: Mobile Percentage
+        dbc.Col(id='p5-mobile-total-card', width=12, md=3),
+        dbc.Col(id='p5-desktop-total-card', width=12, md=3),
+        dbc.Col(id='p5-mobile-percentage-card', width=12, md=3),
     ], className="mb-4"),
 
     # Pie Chart Graph (Device Type Split)
     dbc.Row([
         dbc.Col(
             html.Div(
-                dcc.Graph(id='p5-device-pie-chart'),  # ID for Pie Chart
+                dcc.Graph(id='p5-device-pie-chart'),
                 style={
                     'height': '70vh',
                     'width': '100%',
@@ -86,13 +100,14 @@ def register_callbacks(app):
          Output('p5-date-range-picker', 'max_date_allowed'),
          Output('p5-date-range-picker', 'start_date'),
          Output('p5-date-range-picker', 'end_date'),
-         Output('p5-country-filter', 'options')],
-        [Input('global-data-store', 'data')]  # Listen to Store
+         Output('p5-country-filter', 'options'),
+         Output('p5-status-filter', 'options')],  # Added Output for Status
+        [Input('global-data-store', 'data')]
     )
     def update_page_5_filters(json_data):
-        """Populates date pickers and country filter options based on the DataFrame."""
+        """Populates date pickers, country, and status options based on the DataFrame."""
         if json_data is None:
-            return no_update, no_update, no_update, no_update, []
+            return no_update, no_update, no_update, no_update, [], []
 
         df = pd.DataFrame(json_data)
 
@@ -103,10 +118,18 @@ def register_callbacks(app):
         min_date = df['application_date'].min().date()
         max_date = df['application_date'].max().date()
 
+        # Country Options
         country_options = [{'label': country, 'value': country} for country in
                            sorted(df['applicant_location'].unique())]
 
-        return min_date, max_date, min_date, max_date, country_options
+        # Status Options (NEW)
+        status_options = []
+        if 'application_status' in df.columns:
+            # Drop NaNs, convert to string, sort unique values
+            unique_statuses = sorted(df['application_status'].dropna().astype(str).unique())
+            status_options = [{'label': s.title(), 'value': s} for s in unique_statuses]
+
+        return min_date, max_date, min_date, max_date, country_options, status_options
 
     # 2. Callback to Update Content (Triggered by Filters OR Data Load)
     @app.callback(
@@ -119,10 +142,12 @@ def register_callbacks(app):
          Input('p5-date-range-picker', 'end_date'),
          Input('p5-country-filter', 'value'),
          Input('p5-device-filter', 'value'),
+         Input('p5-status-filter', 'value'),  # Added Input for Status
          Input('data-source-selector', 'value'),
-         Input('global-data-store', 'data')]  # Add Store as Input
+         Input('global-data-store', 'data')]
     )
-    def update_page_5_content(start_date, end_date, selected_countries, selected_devices,data_source, json_data):
+    def update_page_5_content(start_date, end_date, selected_countries, selected_devices, selected_statuses,
+                              data_source, json_data):
         """Updates the pie chart and summary cards based on user filters."""
 
         if json_data is None:
@@ -138,7 +163,6 @@ def register_callbacks(app):
 
         # Ensure 'dtype' column exists and clean its values
         if 'dtype' in filtered_df.columns:
-            # Clean dtype: strip whitespace and title case for consistency
             filtered_df['dtype'] = filtered_df['dtype'].astype(str).str.strip().str.title()
         else:
             empty_fig = go.Figure().update_layout(title="Data Error: 'dtype' column missing.")
@@ -149,7 +173,6 @@ def register_callbacks(app):
                 create_summary_card("Mobile %", "N/A", "secondary")
 
         # --- Date Filtering ---
-        # Handle default dates if inputs are None
         if not start_date: start_date = df['application_date'].min().date()
         if not end_date: end_date = df['application_date'].max().date()
 
@@ -161,6 +184,10 @@ def register_callbacks(app):
         # --- Country Filtering ---
         if selected_countries:
             filtered_df = filtered_df[filtered_df['applicant_location'].isin(selected_countries)]
+
+        # --- Status Filtering (NEW) ---
+        if selected_statuses:
+            filtered_df = filtered_df[filtered_df['application_status'].isin(selected_statuses)]
 
         # --- Device Type Filtering ---
         if not isinstance(selected_devices, list):
@@ -189,10 +216,8 @@ def register_callbacks(app):
 
         def generate_device_pie_chart(df_pie, title):
             """Generates a simple Pie Chart showing Mobile vs Desktop split."""
-            # Ensure 'dtype' is treated as a distinct category and handle potential NaNs
             df_pie['devicetype_display'] = df_pie['dtype'].astype(str).str.title().fillna('Unknown')
 
-            # Define colors for device types for consistency
             color_map = {
                 'Mobile': 'orange',
                 'Desktop': 'blue',
@@ -202,7 +227,7 @@ def register_callbacks(app):
             fig = go.Figure(data=[go.Pie(
                 labels=df_pie['devicetype_display'],
                 values=df_pie['count'],
-                hole=0,  # Use a donut chart for better visual separation
+                hole=0,
                 marker=dict(colors=[color_map.get(label, 'grey') for label in df_pie['devicetype_display']]),
                 textinfo='percent+label',
                 insidetextorientation='radial'
@@ -214,7 +239,7 @@ def register_callbacks(app):
                 plot_bgcolor='white',
                 paper_bgcolor='white',
                 margin=dict(t=50, b=50, l=50, r=50),
-                height=600,  # Reduced height for a standard pie chart
+                height=600,
             )
             return fig
 

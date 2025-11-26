@@ -31,16 +31,27 @@ layout = dbc.Container([
 
     # Filters Section
     dbc.Row([
+        # 1. Date Range (Width changed to 4)
         dbc.Col([html.Label("Select Date Range:", style={'fontWeight': 'bold'}),
                  dcc.DatePickerRange(id='p8-date-range-picker',
                                      display_format='YYYY-MM-DD')],
-                width=12, md=6),
+                width=12, md=4),
+
+        # 2. Country Filter (Width changed to 4)
         dbc.Col([html.Label("Select Applicant Location:", style={'fontWeight': 'bold'}),
                  dcc.Dropdown(id='p8-country-filter',
                               multi=True,
                               placeholder="Select one or more locations...")
                  ],
-                width=12, md=6),
+                width=12, md=4),
+
+        # 3. NEW: Applicant Status Filter (Width 4)
+        dbc.Col([html.Label("Filter by Status:", style={'fontWeight': 'bold'}),
+                 dcc.Dropdown(id='p8-status-filter',
+                              value=[],
+                              multi=True,
+                              placeholder="Select status...")],
+                width=12, md=4),
     ], className="mb-4"),
 
     # Summary Cards
@@ -81,13 +92,14 @@ def register_callbacks(app):
          Output('p8-date-range-picker', 'max_date_allowed'),
          Output('p8-date-range-picker', 'start_date'),
          Output('p8-date-range-picker', 'end_date'),
-         Output('p8-country-filter', 'options')],
-        [Input('global-data-store', 'data')]  # Listen to Store
+         Output('p8-country-filter', 'options'),
+         Output('p8-status-filter', 'options')],  # Added Output for Status
+        [Input('global-data-store', 'data')]
     )
     def populate_initial_filters(json_data):
-        """Populates date pickers and country filter options based on the DataFrame."""
+        """Populates date pickers, country, and status filter options."""
         if json_data is None:
-            return no_update, no_update, no_update, no_update, []
+            return no_update, no_update, no_update, no_update, [], []
 
         df = pd.DataFrame(json_data)
 
@@ -101,7 +113,13 @@ def register_callbacks(app):
         country_options = [{'label': country, 'value': country} for country in
                            sorted(df['applicant_location'].unique())]
 
-        return min_date, max_date, min_date, max_date, country_options
+        # Status Options (NEW)
+        status_options = []
+        if 'application_status' in df.columns:
+            unique_statuses = sorted(df['application_status'].dropna().astype(str).unique())
+            status_options = [{'label': s.title(), 'value': s} for s in unique_statuses]
+
+        return min_date, max_date, min_date, max_date, country_options, status_options
 
     # 2. Callback to Update Content (Triggered by Filters OR Data Load)
     @app.callback(
@@ -113,10 +131,11 @@ def register_callbacks(app):
         [Input('p8-date-range-picker', 'start_date'),
          Input('p8-date-range-picker', 'end_date'),
          Input('p8-country-filter', 'value'),
+         Input('p8-status-filter', 'value'),  # Added Input for Status
          Input('data-source-selector', 'value'),
-         Input('global-data-store', 'data')]  # Add Store as Input
+         Input('global-data-store', 'data')]
     )
-    def update_page_8_content(start_date, end_date, selected_countries,data_source, json_data):
+    def update_page_8_content(start_date, end_date, selected_countries, selected_statuses, data_source, json_data):
 
         if json_data is None:
             return no_update, no_update, no_update, no_update, no_update
@@ -148,6 +167,10 @@ def register_callbacks(app):
             if not isinstance(selected_countries, list):
                 selected_countries = [selected_countries]
             filtered_df = filtered_df[filtered_df['applicant_location'].isin(selected_countries)]
+
+        # --- Status Filtering (NEW) ---
+        if selected_statuses:
+            filtered_df = filtered_df[filtered_df['application_status'].isin(selected_statuses)]
 
         # --- Handle Empty Data ---
         if filtered_df.empty:
@@ -207,7 +230,8 @@ def register_callbacks(app):
                 barmode='group',
                 xaxis=dict(title=x_title),
                 # Primary Y-axis (Counts)
-                yaxis=dict(title=f'Total {suffix} Count', title_font=dict(color='#191970'), tickformat='.0f', side='left',
+                yaxis=dict(title=f'Total {suffix} Count', title_font=dict(color='#191970'), tickformat='.0f',
+                           side='left',
                            showgrid=True, gridcolor='#e0e0e0', rangemode='tozero'),
                 # Secondary Y-axis (Percentage)
                 yaxis2=dict(

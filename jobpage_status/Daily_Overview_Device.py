@@ -27,26 +27,38 @@ def create_summary_card(title, value, color):
     )
 
 
-
-
 # --- Page Layout ---
 layout = dbc.Container([
     html.H2("Page 6: Daily Application Overview by Device", className="text-center my-4", style={'color': '#2c3e50'}),
 
     # Filters Section
     dbc.Row([
+        # 1. Month Filter (Width changed to 3)
         dbc.Col([html.Label("Select Months:", style={'fontWeight': 'bold'}),
                  dcc.Dropdown(id='p6-month-filter', value=[], multi=True,
                               placeholder="Select months...")],
-                width=12, md=4),
+                width=12, md=3),
+
+        # 2. Country Filter (Width changed to 3)
         dbc.Col([html.Label("Select Country:", style={'fontWeight': 'bold'}),
                  dcc.Dropdown(id='p6-country-filter', value=[], multi=True,
                               placeholder="Select countries...")],
-                width=12, md=4),
+                width=12, md=3),
+
+        # 3. Device Filter (Width changed to 3)
         dbc.Col([html.Label("Filter by Device Type:", style={'fontWeight': 'bold'}),
                  dcc.Dropdown(id='p6-device-filter', options=DEVICE_TYPE_OPTIONS, value='all_devices',
                               clearable=False)],
-                width=12, md=4)
+                width=12, md=3),
+
+        # 4. NEW: Applicant Status Filter (Width 3)
+        dbc.Col([html.Label("Filter by Status:", style={'fontWeight': 'bold'}),
+                 dcc.Dropdown(id='p6-status-filter',
+                              value=[],
+                              multi=True,
+                              placeholder="Select status...")],
+                width=12, md=3),
+
     ], className="mb-4"),
 
     # Summary Cards
@@ -69,13 +81,14 @@ def register_callbacks(app):
     # 1. Callback to Initialize Filters (Triggered by Data Load)
     @app.callback(
         [Output('p6-month-filter', 'options'),
-         Output('p6-country-filter', 'options')],
-        [Input('global-data-store', 'data')]  # Listen to Store
+         Output('p6-country-filter', 'options'),
+         Output('p6-status-filter', 'options')],  # Added Output for Status
+        [Input('global-data-store', 'data')]
     )
     def populate_initial_filters(json_data):
         """Populates initial filter options based on the DataFrame."""
         if json_data is None:
-            return [], []
+            return [], [], []
 
         df = pd.DataFrame(json_data)
 
@@ -90,7 +103,13 @@ def register_callbacks(app):
         month_opts = [{'label': month_map.get(m, f"Month {m}"), 'value': m} for m in sorted(df['month'].unique())]
         country_opts = [{'label': country, 'value': country} for country in sorted(df['applicant_location'].unique())]
 
-        return month_opts, country_opts
+        # Status Options (NEW)
+        status_opts = []
+        if 'application_status' in df.columns:
+            unique_statuses = sorted(df['application_status'].dropna().astype(str).unique())
+            status_opts = [{'label': s.title(), 'value': s} for s in unique_statuses]
+
+        return month_opts, country_opts, status_opts
 
     # 2. Callback to Update Content (Triggered by Filters OR Data Load)
     @app.callback(
@@ -102,10 +121,12 @@ def register_callbacks(app):
         [Input('p6-month-filter', 'value'),
          Input('p6-country-filter', 'value'),
          Input('p6-device-filter', 'value'),
+         Input('p6-status-filter', 'value'),  # Added Input for Status
          Input('data-source-selector', 'value'),
-         Input('global-data-store', 'data')]  # Add Store as Input
+         Input('global-data-store', 'data')]
     )
-    def update_page_6_content(selected_months, selected_countries, selected_device,data_source, json_data):
+    def update_page_6_content(selected_months, selected_countries, selected_device, selected_statuses, data_source,
+                              json_data):
 
         if json_data is None:
             return no_update, no_update, no_update, no_update, no_update
@@ -128,8 +149,14 @@ def register_callbacks(app):
         # --- Apply Filters ---
         if selected_months:
             filtered_df = filtered_df[filtered_df['month'].isin(selected_months)]
+
         if selected_countries:
             filtered_df = filtered_df[filtered_df['applicant_location'].isin(selected_countries)]
+
+        # Status Filtering (NEW)
+        if selected_statuses:
+            filtered_df = filtered_df[filtered_df['application_status'].isin(selected_statuses)]
+
         if selected_device != 'all_devices':
             filtered_df = filtered_df[filtered_df['dtype'] == selected_device]
 
