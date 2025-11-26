@@ -15,3 +15,7 @@ SQL_TABLE_NAME=
 #
 #
 #pip install pandas pymongo dash dash_bootstrap_components sqlalchemy dotenv pymysql
+
+
+xampp server localhost used for SQL testing,
+MongoDB for localhost through compass/atlas and mongosh setup.
