@@ -83,7 +83,7 @@ layout = dbc.Container([
                     'backgroundColor': 'white'
                 }
             ),
-            width=12
+            width=12, className="glass-container"
         )
     ])
 ], fluid=True)
@@ -238,7 +238,7 @@ def register_callbacks(app):
                 plot_bgcolor='white',
                 paper_bgcolor='white',
                 margin=dict(t=50, b=50, l=50, r=50),
-                height=600,
+                height=500,
             )
             return fig
 

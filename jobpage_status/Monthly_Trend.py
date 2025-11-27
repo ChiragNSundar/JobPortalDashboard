@@ -31,7 +31,15 @@ layout = dbc.Container([
         dbc.Col(id='p2-active-applications-card', width=4),
         dbc.Col(id='p2-inactive-applications-card', width=4),
     ], className="mb-4"),
-    dbc.Row([dbc.Col(dcc.Graph(id='p2-monthly-cv-graph'), width=12)])
+
+    #graph
+        html.Div([
+        # Optional: Add a Title inside the glass box
+        # The Graph
+        dcc.Graph(id='p2-monthly-cv-graph', style={'height': '500px'}),
+    ],className="glass-container")
+
+    #dbc.Row([dbc.Col(dcc.Graph(id='p2-monthly-cv-graph'), width=12)])
 ])
 
 

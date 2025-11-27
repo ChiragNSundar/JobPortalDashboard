@@ -53,7 +53,7 @@ def generate_sunburst_chart(df_sunburst, title):
         plot_bgcolor='white',
         paper_bgcolor='white',
         margin=dict(t=50, b=50, l=50, r=50),
-        height=1000,  # Adjust height as needed
+        height=900,  # Adjust height as needed
     )
     return fig
 
@@ -102,7 +102,7 @@ layout = dbc.Container([
                     'backgroundColor': 'white'
                 }
             ),
-            width=12
+            width=12, className="glass-container"
         )
     ])
 ], fluid=True)

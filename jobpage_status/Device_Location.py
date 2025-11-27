@@ -75,7 +75,7 @@ layout = dbc.Container([
                     'backgroundColor': 'white'
                 }
             ),
-            width=12
+            width=12, className="glass-container"
         )
     ])
 ], fluid=True)
