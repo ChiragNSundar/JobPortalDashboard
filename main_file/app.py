@@ -5,9 +5,8 @@ import dash
 from dash import html, dcc, callback, Input, Output
 import dash_bootstrap_components as dbc
 
-# Import data loading (keep your existing imports)
+# Import data loading
 from Data.datasetsql import load_data, load_unique_most_recent_data
-
 
 # Import pages
 from jobpage_status.Daily_Overview import layout as page1_layout, register_callbacks as register_page1_callbacks
@@ -18,7 +17,8 @@ from jobpage_status.Mobile_Desktop import layout as page5_layout, register_callb
 from jobpage_status.Daily_Overview_Device import layout as page6_layout, register_callbacks as register_page6_callbacks
 from jobpage_status.Monthly_Trend_Device import layout as page7_layout, register_callbacks as register_page7_callbacks
 from jobpage_status.Device_Location import layout as page8_layout, register_callbacks as register_page8_callbacks
-from jobpage_status.Registrysource_bargraph import layout as page9_layout, register_callbacks as register_page9_callbacks
+from jobpage_status.Registrysource_bargraph import layout as page9_layout, \
+    register_callbacks as register_page9_callbacks
 
 # --- Data Source Selection Options ---
 DATA_SOURCE_OPTIONS = [
@@ -26,65 +26,99 @@ DATA_SOURCE_OPTIONS = [
     {'label': 'Active vs Inactive Based on Users', 'value': 'latest_unique'}
 ]
 
-# --- View Mode Options (Global) ---
-VIEW_MODE_OPTIONS = [
-    {'label': 'Based on CV Count', 'value': 'cv'},
-    {'label': 'Based on Unique Users', 'value': 'user'}
-]
+# Initialize App with Bootstrap and FontAwesome (for the icon)
+app = dash.Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
+    suppress_callback_exceptions=True,
+    title="Job Portal Dashboard"
+)
 
-# Initialize App
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
-
-# --- LAYOUT ---
+# --- NAVBAR COMPONENT (Reorganized to match PDF) ---
 def create_navbar():
-    return dbc.NavbarSimple(
-        children=[
-            dbc.NavItem(dbc.NavLink("Daily Overview", href="/page-1")),
-            dbc.NavItem(dbc.NavLink("Monthly Trend", href="/page-2")),
-            dbc.NavItem(dbc.NavLink("Location Analysis", href="/page-3")),
-            dbc.NavItem(dbc.NavLink("Pie-Chart", href="/page-4")),
-            dbc.NavItem(dbc.NavLink("Mobile Desktop", href="/page-5")),
-            dbc.NavItem(dbc.NavLink("Daily Device Overview", href="/page-6")),
-            dbc.NavItem(dbc.NavLink("Monthly Device Overview", href="/page-7")),
-            dbc.NavItem(dbc.NavLink("Device Location Overview", href="/page-8")),
-            dbc.NavItem(dbc.NavLink("Registry Source Overview", href="/page-9")),
-            # ... other links ...
-        ],
-        brand="Job Portal Dashboard",
-        brand_href="/",
+    return dbc.Navbar(
+        dbc.Container([
+            # Brand / Logo (Icon + Text)
+            html.A(
+                dbc.Row([
+                    dbc.Col(html.I(className="fas fa-chart-line fa-lg me-2", style={"color": "#00d2ff"})),
+                    dbc.Col(dbc.NavbarBrand("Job Portal Dashboard", className="ms-2")),
+                ], align="center", className="g-0"),
+                href="/",
+                style={"textDecoration": "none"},
+            ),
+
+            # Toggler for mobile
+            dbc.NavbarToggler(id="navbar-toggler", n_clicks=0),
+
+            # Links
+            dbc.Collapse(
+                dbc.Nav([
+                    dbc.NavItem(dbc.NavLink("Daily", href="/page-1")),
+                    dbc.NavItem(dbc.NavLink("Monthly", href="/page-2")),
+                    dbc.NavItem(dbc.NavLink("Location", href="/page-3")),
+                    dbc.NavItem(dbc.NavLink("Distribution", href="/page-4")),  # Pie Chart
+
+                    # Dropdown for Device Analytics (Matches PDF Arrow)
+                    dbc.DropdownMenu(
+                        children=[
+                            dbc.DropdownMenuItem("Mobile vs Desktop", href="/page-5"),
+                            dbc.DropdownMenuItem("Daily Device Trend", href="/page-6"),
+                            dbc.DropdownMenuItem("Monthly Device Trend", href="/page-7"),
+                            dbc.DropdownMenuItem("Device Location", href="/page-8"),
+                        ],
+                        nav=True,
+                        in_navbar=True,
+                        label="Device Analytics",
+                    ),
+
+                    dbc.NavItem(dbc.NavLink("Registry Source", href="/page-9")),
+
+                ], className="ms-auto", navbar=True),
+                id="navbar-collapse",
+                navbar=True,
+            ),
+        ]),
         color="dark",
         dark=True,
-        className="mb-4"
+        className="custom-navbar mb-4 sticky-top",  # Uses CSS class
+        expand="lg"
     )
 
 
+# --- APP LAYOUT ---
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    dcc.Store(id='global-data-store', data=None),  # Holds the JSON data
+    dcc.Store(id='global-data-store', data=None),
     dcc.Store(id='trigger-initial-load', data='full'),
 
+    # Navbar
     create_navbar(),
 
     dbc.Container([
+        # Data Source Selector (Wrapped in Glass Container for visibility)
         dbc.Row([
             dbc.Col([
-                html.Label("Select Data Source at Startup:", style={'fontWeight': 'bold'}),
-                dcc.RadioItems(
-                    id='data-source-selector',
-                    options=DATA_SOURCE_OPTIONS,
-                    value='full',
-                    labelStyle={'display': 'inline-block', 'marginTop': '10px', 'marginRight': '20px'}
-                )
+                html.Div([
+                    html.Label("Select Data Source:", style={'fontWeight': 'bold', 'marginBottom': '5px'}),
+                    dcc.RadioItems(
+                        id='data-source-selector',
+                        options=DATA_SOURCE_OPTIONS,
+                        value='full',
+                        labelStyle={'display': 'inline-block', 'marginRight': '20px'},
+                        inputStyle={"marginRight": "5px"}
+                    )
+                ], className="glass-container")  # Applies glass effect
             ], width=12)
-        ], className="my-3")
-    ]),
+        ], className="mb-3"),
 
-    html.Div(id='page-content')
+        # Page Content
+        html.Div(id='page-content')
+    ], fluid=True)
 ])
 
-# --- 1. REGISTER CALLBACKS IMMEDIATELY ---
-# We pass 'app' only. The callbacks inside these functions will listen to 'global-data-store'.
+# --- 1. REGISTER CALLBACKS ---
 register_page1_callbacks(app)
 register_page2_callbacks(app)
 register_page3_callbacks(app)
@@ -97,7 +131,6 @@ register_page9_callbacks(app)
 
 
 # --- 2. DATA LOADING CALLBACKS ---
-
 @callback(
     Output('trigger-initial-load', 'data'),
     Input('data-source-selector', 'value')
@@ -120,12 +153,10 @@ def load_global_data(data_source_type):
     else:
         df_result = load_data()
 
-    # Convert Date objects to strings for JSON serialization
-    # (Important: dcc.Store stores JSON, not Pandas objects)
-    if 'application_date' in df_result.columns:
+    if df_result is not None and 'application_date' in df_result.columns:
         df_result['application_date'] = df_result['application_date'].astype(str)
 
-    return df_result.to_dict('records')
+    return df_result.to_dict('records') if df_result is not None else []
 
 
 # --- 3. ROUTING CALLBACK ---
@@ -154,6 +185,18 @@ def display_page(pathname):
         return page9_layout
     else:
         return page1_layout
+
+
+# --- NAVBAR TOGGLER CALLBACK ---
+@callback(
+    Output("navbar-collapse", "is_open"),
+    [Input("navbar-toggler", "n_clicks")],
+    [dash.State("navbar-collapse", "is_open")],
+)
+def toggle_navbar_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 
 if __name__ == '__main__':

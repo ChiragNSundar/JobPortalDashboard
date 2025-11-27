@@ -16,14 +16,14 @@ STATUS_OPTIONS = [
 
 
 # Helper functions
-def create_summary_card(title, value, color):
+def create_summary_card(title, value, color_class="primary"):
     return dbc.Card(
         dbc.CardBody([
-            html.H6(title, className="card-title"),
-            html.H2(f"{value:,}", className="card-text"),
+            html.H6(title, className="card-title", style={'opacity': '0.9', 'color': 'white'}),
+            html.H2(f"{value:,}", className="card-text",style={'fontWeight': 'bold', 'color': 'white'}),
         ]),
-        color=color, inverse=True, className="text-center shadow-sm mb-3"
-    )
+        color=color_class, inverse=True, className=f"mb-4 shadow-sm {color_class}"
+)
 
 
 # --- Modified generate_sunburst_chart function ---
