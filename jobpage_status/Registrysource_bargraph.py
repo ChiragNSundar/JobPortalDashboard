@@ -23,21 +23,21 @@ layout = dbc.Container([
 
     # Filters Section
     dbc.Row([
-        dbc.Col([html.Label("Select Date Range:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Date Range:", className="control-label"),
                  dcc.DatePickerRange(
                      id='p9-date-range-filter',
                      display_format='YYYY-MM-DD'
                  )],
                 width=12, md=4),
-        dbc.Col([html.Label("Select Country:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Country:", className="control-label"),
                  dcc.Dropdown(id='p9-country-filter', value=[], multi=True,
                               placeholder="Select countries...")],
                 width=12, md=4),
-        dbc.Col([html.Label("Select RegSource:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select RegSource:", className="control-label"),
                  dcc.Dropdown(id='p9-regsource-filter', value=[], multi=True,
                               placeholder="Select registration sources...")],
                 width=12, md=4)
-    ], className="mb-4"),
+    ], className="mb-4 glass-container"),
 
     # Summary Cards
     dbc.Row([

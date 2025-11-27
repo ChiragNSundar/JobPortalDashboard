@@ -22,16 +22,16 @@ layout = dbc.Container([
 
     # Filters Section
     dbc.Row([
-        dbc.Col([html.Label("Select Months:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Months:", className="control-label"),
                  dcc.Dropdown(id='p1-month-filter', value=[], multi=True, placeholder="Select months...")],
                 width=12, md=4),
-        dbc.Col([html.Label("Select Country:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Country:", className="control-label"),
                  dcc.Dropdown(id='p1-country-filter', value=[], multi=True, placeholder="Select countries...")],
                 width=12, md=4),
-        dbc.Col([html.Label("Select Job Title:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Job Title:", className="control-label"),
                  dcc.Dropdown(id='p1-job-title-filter', value='all', clearable=False)],
                 width=12, md=4)
-    ], className="mb-4"),
+    ], className="mb-4 glass-container"),
 
     # Summary Cards
     dbc.Row([

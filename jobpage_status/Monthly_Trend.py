@@ -19,13 +19,13 @@ def create_summary_card(title, value, color_class="primary"):
 
 # --- 2. Layout ---
 layout = dbc.Container([
-    html.H2("Page 2: Monthly Trend Analysis", className="text-center my-4"),
+    html.H2("Page 2: Monthly Trend Analysis", className="text-center my-4", style={'color': '#2c3e50'}),
     dbc.Row([
-        dbc.Col([html.Label("Select Date Range:"),
+        dbc.Col([html.Label("Select Date Range:", className="control-label"),
                  dcc.DatePickerRange(id='p2-date-range-picker', display_format='YYYY-MM-DD')], width=6),
-        dbc.Col([html.Label("Select Country:"),
+        dbc.Col([html.Label("Select Country:", className="control-label"),
                  dcc.Dropdown(id='p2-country-filter', multi=True)], width=6)
-    ], className="mb-4"),
+    ], className="mb-4 glass-container"),
     dbc.Row([
         dbc.Col(id='p2-total-applications-card', width=4),
         dbc.Col(id='p2-active-applications-card', width=4),

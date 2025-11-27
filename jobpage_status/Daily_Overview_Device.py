@@ -33,32 +33,32 @@ layout = dbc.Container([
     # Filters Section
     dbc.Row([
         # 1. Month Filter (Width changed to 3)
-        dbc.Col([html.Label("Select Months:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Months:", className="control-label"),
                  dcc.Dropdown(id='p6-month-filter', value=[], multi=True,
                               placeholder="Select months...")],
                 width=12, md=3),
 
         # 2. Country Filter (Width changed to 3)
-        dbc.Col([html.Label("Select Country:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Country:", className="control-label"),
                  dcc.Dropdown(id='p6-country-filter', value=[], multi=True,
                               placeholder="Select countries...")],
                 width=12, md=3),
 
         # 3. Device Filter (Width changed to 3)
-        dbc.Col([html.Label("Filter by Device Type:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Filter by Device Type:", className="control-label"),
                  dcc.Dropdown(id='p6-device-filter', options=DEVICE_TYPE_OPTIONS, value='all_devices',
                               clearable=False)],
                 width=12, md=3),
 
         # 4. NEW: Applicant Status Filter (Width 3)
-        dbc.Col([html.Label("Filter by Status:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Filter by Status:", className="control-label"),
                  dcc.Dropdown(id='p6-status-filter',
                               value=[],
                               multi=True,
                               placeholder="Select status...")],
                 width=12, md=3),
 
-    ], className="mb-4"),
+    ], className="mb-4 glass-container"),
 
     # Summary Cards
     dbc.Row([

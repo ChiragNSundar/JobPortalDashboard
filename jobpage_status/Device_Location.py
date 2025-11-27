@@ -31,13 +31,13 @@ layout = dbc.Container([
     # Filters Section
     dbc.Row([
         # 1. Date Range (Width changed to 4)
-        dbc.Col([html.Label("Select Date Range:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Date Range:", className="control-label"),
                  dcc.DatePickerRange(id='p8-date-range-picker',
                                      display_format='YYYY-MM-DD')],
                 width=12, md=4),
 
         # 2. Country Filter (Width changed to 4)
-        dbc.Col([html.Label("Select Applicant Location:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Applicant Location:", className="control-label"),
                  dcc.Dropdown(id='p8-country-filter',
                               multi=True,
                               placeholder="Select one or more locations...")
@@ -45,13 +45,13 @@ layout = dbc.Container([
                 width=12, md=4),
 
         # 3. NEW: Applicant Status Filter (Width 4)
-        dbc.Col([html.Label("Filter by Status:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Filter by Status:", className="control-label"),
                  dcc.Dropdown(id='p8-status-filter',
                               value=[],
                               multi=True,
                               placeholder="Select status...")],
                 width=12, md=4),
-    ], className="mb-4"),
+    ], className="mb-4 glass-container"),
 
     # Summary Cards
     dbc.Row([

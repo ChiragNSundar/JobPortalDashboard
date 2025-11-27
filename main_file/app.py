@@ -58,7 +58,7 @@ def create_navbar():
                     dbc.NavItem(dbc.NavLink("Daily", href="/page-1")),
                     dbc.NavItem(dbc.NavLink("Monthly", href="/page-2")),
                     dbc.NavItem(dbc.NavLink("Location", href="/page-3")),
-                    dbc.NavItem(dbc.NavLink("Distribution", href="/page-4")),  # Pie Chart
+                    dbc.NavItem(dbc.NavLink("Pie Chart", href="/page-4")),  # Pie Chart
 
                     # Dropdown for Device Analytics (Matches PDF Arrow)
                     dbc.DropdownMenu(

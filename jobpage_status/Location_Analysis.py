@@ -23,12 +23,12 @@ layout = dbc.Container([
 
     # Filters Section
     dbc.Row([
-        dbc.Col([html.Label("Select Date Range:", style={'fontWeight': 'bold'}),
+        dbc.Col([html.Label("Select Date Range:", className="control-label"),
                  dcc.DatePickerRange(id='p3-date-range-picker',
                                      # Limits will be set by callback
                                      display_format='YYYY-MM-DD')],
                 width=12, md=6),
-    ], className="mb-4"),
+    ], className="mb-4 glass-container"),
 
     # Summary Cards
     dbc.Row([
