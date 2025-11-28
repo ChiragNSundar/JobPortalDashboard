@@ -180,3 +180,28 @@ def insert_data_from_csv_dynamic():
 
 if __name__ == "__main__":
     insert_data_from_csv_dynamic()
+
+"""
+CREATE TABLE jobseeker_data (
+    id INT PRIMARY KEY,
+    dateUTC DATE,
+    siteInstanceID INT,
+    countryCode VARCHAR(50),
+    status VARCHAR(50),
+    dataSource VARCHAR(100),
+    targetRefID VARCHAR(100),
+    title VARCHAR(255),
+    userID INT,
+    userEmail VARCHAR(255),
+    trafficSource VARCHAR(100),
+    registerSource VARCHAR(100),
+    isSearchable INT,
+    hasJbeAlert INT,
+    isDataFromCV INT,
+    deviceType VARCHAR(50),
+    timeCreatedUTC DATETIME,
+    timeUpdatedUTC DATETIME,
+    timeModifiedDB DATETIME,
+    row_num INT
+);
+"""
