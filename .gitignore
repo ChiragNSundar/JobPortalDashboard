@@ -2,3 +2,19 @@
 .env
 __pycache__/
 *.pyc
+# Secrets (NEVER commit these)
+.env.local
+
+# Python Cache
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+.venv/
+
+# IDE Settings (Optional but recommended)
+.vscode/
+.idea/
+.DS_Store
