@@ -1,4 +1,8 @@
 # JobPortalDashboard
+
+#pip install -r requirements.txt
+
+
 # .env file
 
 # MongoDB Configuration
@@ -12,9 +16,8 @@ SQL_USER=
 SQL_PASSWORD=
 SQL_DATABASE=
 SQL_TABLE_NAME=
-#
-#
-#pip install pandas pymongo dash dash_bootstrap_components sqlalchemy dotenv pymysql
+
+
 
 
 xampp server localhost used for SQL testing,
