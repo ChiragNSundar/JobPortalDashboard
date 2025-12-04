@@ -98,7 +98,7 @@ Register Source: Analysis of where users are coming from.
 xampp server localhost used for SQL testing,
 MongoDB for localhost through compass/atlas and mongosh setup.
 
-hello
+
 
 Images:
 ![1_2_3_4_5_6_7_8_merged_page-0001](https://github.com/user-attachments/assets/89fe60fe-f792-45e0-b111-27c5e0b7d3e9)
